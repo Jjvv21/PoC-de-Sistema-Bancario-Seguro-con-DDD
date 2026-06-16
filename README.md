@@ -1,2 +1,247 @@
-# PoC-de-Sistema-Bancario-Seguro-con-DDD
-PoC de sistema bancario seguro con DDD táctico, implementando los modelos de seguridad Biba y Bell-LaPadula sobre microservicios FastAPI orquestados en Minikube.
+# SecureBankito 
+
+Proof of Concept (PoC) de un sistema bancario seguro basado en **Domain-Driven Design (DDD) táctico**, **Microservicios** y **Security by Design**, implementando los modelos clásicos de control de acceso **Biba** (Integridad) y **Bell-LaPadula** (Confidencialidad) como reglas de negocio del dominio.
+
+---
+
+## Objetivo
+
+Demostrar cómo los modelos formales de seguridad pueden integrarse directamente dentro de una arquitectura moderna de microservicios, garantizando restricciones de integridad y confidencialidad más allá de los mecanismos tradicionales de autenticación y autorización.
+
+---
+
+## Características Principales
+
+* Arquitectura basada en microservicios.
+* Domain-Driven Design (DDD) táctico.
+* Autenticación mediante JWT.
+* Implementación del modelo Biba para protección de integridad.
+* Implementación del modelo Bell-LaPadula para protección de confidencialidad.
+* Bases de datos desacopladas por contexto delimitado.
+* Despliegue mediante Docker, Docker Compose y Kubernetes (Minikube).
+
+---
+
+## Arquitectura General
+
+| Servicio              | Puerto | Responsabilidad                                | Modelo de Seguridad |
+| --------------------- | ------ | ---------------------------------------------- | ------------------- |
+| `iam-service`         | 8001   | Gestión de identidad y emisión de JWT          | N/A                 |
+| `banking-service`     | 8002   | Gestión de cuentas y transferencias bancarias  | Biba                |
+| `investments-service` | 8003   | Gestión de inversiones y activos de alto valor | Bell-LaPadula       |
+
+### Niveles de Seguridad
+
+#### Clasificación de Confidencialidad
+
+```text
+Bronce < Plata < Oro
+```
+
+#### Niveles de Integridad
+
+```text
+1 < 2 < 3
+```
+
+---
+
+## Estructura del Proyecto
+
+```text
+securebankito/
+
+├── iam-service/
+│   ├── app/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── banking-service/
+│   ├── app/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── investments-service/
+│   ├── app/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── k8s/
+│   ├── iam/
+│   ├── banking/
+│   └── investments/
+│
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## Modelos de Seguridad Implementados
+
+### Biba — Integridad
+
+Propiedad aplicada en `banking-service`:
+
+> **No Write Up**
+
+Un sujeto no puede modificar recursos cuyo nivel de integridad sea superior al suyo.
+
+#### Ejemplo
+
+```text
+Usuario:
+integrity_level = 1
+
+Cuenta destino:
+integrity_level = 3
+
+Resultado:
+403 Forbidden
+```
+
+---
+
+### Bell-LaPadula — Confidencialidad
+
+Propiedad aplicada en `investments-service`:
+
+> **No Read Up**
+
+Un sujeto no puede acceder a información clasificada por encima de su nivel de autorización.
+
+#### Ejemplo
+
+```text
+Usuario:
+clearance = Plata
+
+Activo:
+classification = Oro
+
+Resultado:
+403 Forbidden
+```
+
+---
+
+## Contrato JWT
+
+Todos los servicios consumen tokens emitidos por `iam-service`.
+
+```json
+{
+  "sub": "user-uuid",
+  "username": "julio",
+  "clearance": "Oro",
+  "integrity": 3,
+  "exp": 1234567890
+}
+```
+
+---
+
+## Ejecución Local
+
+### Docker Compose
+
+```bash
+git clone https://github.com/<usuario>/securebankito.git
+
+cd securebankito
+
+docker compose up --build
+```
+
+---
+
+## Despliegue en Kubernetes
+
+```bash
+minikube start
+
+kubectl apply -f k8s/
+
+kubectl get pods
+
+kubectl get services
+```
+
+---
+
+## Escenarios de Validación
+
+| Caso                      | Descripción                                       | Resultado Esperado |
+| ------------------------- | ------------------------------------------------- | ------------------ |
+| Integridad inválida       | Usuario nivel 1 intenta modificar recurso nivel 3 | `403 Forbidden`    |
+| Confidencialidad inválida | Usuario Plata intenta leer recurso Oro            | `403 Forbidden`    |
+| Acceso autorizado         | Usuario Oro nivel 3                               | `200 OK`           |
+
+---
+
+## Stack Tecnológico
+
+### Backend
+
+* Python 3.12
+* FastAPI
+* Pydantic
+* SQLAlchemy
+
+### Persistencia
+
+* PostgreSQL
+
+### Seguridad
+
+* JWT
+* PyJWT
+* Bcrypt
+
+### Infraestructura
+
+* Docker
+* Docker Compose
+* Kubernetes
+* Minikube
+
+---
+
+## Conceptos Aplicados
+
+* Domain-Driven Design (DDD)
+* Bounded Contexts
+* Entities
+* Value Objects
+* Aggregates
+* Application Services
+* Repository Pattern
+* Security by Design
+* Bell-LaPadula Security Model
+* Biba Integrity Model
+* JWT Authentication
+* Containerized Microservices
+
+---
+
+## Equipo
+
+| Integrante   | Responsabilidades                                |
+| ------------ | ------------------------------------------------ |
+| Julio        | IAM Service, Banking Service, Docker, Kubernetes |
+| Integrante 2 | Investments Service, documentación y diagramas   |
+
+---
+
+## Licencia
+
+Este proyecto fue desarrollado con fines académicos y de investigación como prueba de concepto para la integración de modelos formales de seguridad en arquitecturas de microservicios.
