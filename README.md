@@ -233,14 +233,6 @@ kubectl get services
 
 ---
 
-## Equipo
-
-| Integrante   | Responsabilidades                                |
-| ------------ | ------------------------------------------------ |
-| Julio        | IAM Service, Banking Service, Docker, Kubernetes |
-| Integrante 2 | Investments Service, documentación y diagramas   |
-
----
 
 ## Licencia
 
