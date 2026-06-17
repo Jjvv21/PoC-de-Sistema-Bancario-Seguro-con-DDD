@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iam-config
+data:
+  DATABASE_URL: "postgresql://iam_user:iam_pass@iam-db:5432/iam_db"
+  JWT_SECRET_KEY: "dev-secret-change-in-production"

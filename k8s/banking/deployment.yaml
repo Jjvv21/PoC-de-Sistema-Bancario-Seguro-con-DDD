@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-service
+  template:
+    metadata:
+      labels:
+        app: banking-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z banking-db 5432; do echo waiting for db; sleep 2; done']
+      containers:
+      - name: banking-service
+        image: banking-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8002
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: DATABASE_URL
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: banking-config
+              key: JWT_SECRET_KEY
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-db
+  template:
+    metadata:
+      labels:
+        app: banking-db
+    spec:
+      containers:
+      - name: banking-db
+        image: postgres:16
+        env:
+        - name: POSTGRES_DB
+          value: banking_db
+        - name: POSTGRES_USER
+          value: banking_user
+        - name: POSTGRES_PASSWORD
+          value: banking_pass

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iam-service
+  template:
+    metadata:
+      labels:
+        app: iam-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z iam-db 5432; do echo waiting for db; sleep 2; done']
+      containers:
+      - name: iam-service
+        image: iam-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8001
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: iam-config
+              key: DATABASE_URL
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: iam-config
+              key: JWT_SECRET_KEY
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iam-db
+  template:
+    metadata:
+      labels:
+        app: iam-db
+    spec:
+      containers:
+      - name: iam-db
+        image: postgres:16
+        env:
+        - name: POSTGRES_DB
+          value: iam_db
+        - name: POSTGRES_USER
+          value: iam_user
+        - name: POSTGRES_PASSWORD
+          value: iam_pass

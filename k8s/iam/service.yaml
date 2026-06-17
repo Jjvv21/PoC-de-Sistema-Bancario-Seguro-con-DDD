@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: iam-service
+spec:
+  selector:
+    app: iam-service
+  ports:
+  - port: 8001
+    targetPort: 8001
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iam-db
+spec:
+  selector:
+    app: iam-db
+  ports:
+  - port: 5432
+    targetPort: 5432

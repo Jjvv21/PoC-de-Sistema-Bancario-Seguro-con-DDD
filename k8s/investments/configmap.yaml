@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: investments-config
+data:
+  DATABASE_URL: "postgresql://investments_user:investments_pass@investments-db:5432/investments_db"
+  JWT_SECRET_KEY: "dev-secret-change-in-production"
