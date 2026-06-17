@@ -22,5 +22,29 @@ services:
     depends_on:
       - iam-db
 
+  banking-db:
+    image: postgres:16
+    container_name: banking-db
+    environment:
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_pass
+      POSTGRES_DB: banking_db
+    ports:
+      - "5444:5432"
+    volumes:
+      - banking_data:/var/lib/postgresql/data
+
+  banking-service:
+    build: ./banking-service
+    container_name: banking-service
+    environment:
+      DATABASE_URL: postgresql://banking_user:banking_pass@banking-db:5432/banking_db
+      JWT_SECRET_KEY: dev-secret-change-in-production
+    ports:
+      - "8012:8002"
+    depends_on:
+      - banking-db
+
 volumes:
   iam_data:
+  banking_data:
