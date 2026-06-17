@@ -1,0 +1,26 @@
+services:
+  iam-db:
+    image: postgres:16
+    container_name: iam-db
+    environment:
+      POSTGRES_USER: iam_user
+      POSTGRES_PASSWORD: iam_pass
+      POSTGRES_DB: iam_db
+    ports:
+      - "5443:5432"
+    volumes:
+      - iam_data:/var/lib/postgresql/data
+
+  iam-service:
+    build: ./iam-service
+    container_name: iam-service
+    environment:
+      DATABASE_URL: postgresql://iam_user:iam_pass@iam-db:5432/iam_db
+      JWT_SECRET_KEY: dev-secret-change-in-production
+    ports:
+      - "8011:8001"
+    depends_on:
+      - iam-db
+
+volumes:
+  iam_data:
