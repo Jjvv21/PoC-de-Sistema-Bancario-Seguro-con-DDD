@@ -46,6 +46,58 @@ Bronce < Plata < Oro
 
 ---
 
+## Dominio de Investments
+
+El contexto de `investments-service` modela la gestión de activos financieros de alto valor. Su preocupación principal no es la integridad de escritura, sino la **confidencialidad** de la información expuesta a cada sujeto.
+
+### 1. Personas / Sujetos
+
+En este dominio, un sujeto es un usuario autenticado que consume el servicio mediante un JWT emitido por `iam-service`. El servicio no administra identidades completas; únicamente interpreta el nivel de autorización del sujeto.
+
+| Sujeto | Clearance | Acceso esperado |
+| ------ | --------- | ---------------- |
+| Usuario Bronce | `Bronce` | No puede leer activos clasificados como `Oro` |
+| Usuario Plata | `Plata` | No puede leer activos clasificados como `Oro` |
+| Usuario Oro | `Oro` | Puede leer activos `Oro` |
+
+La etiqueta de confidencialidad se extrae del token y se valida antes de consultar la base de datos.
+
+### 2. Procesos de Negocio
+
+El flujo principal del dominio es la consulta de activos de inversión:
+
+1. El cliente envía una petición autenticada al endpoint de inversiones.
+2. El middleware decodifica el JWT y obtiene el `clearance` del sujeto.
+3. El caso de uso aplica la regla Bell-LaPadula: **No Read Up**.
+4. Si el clearance es insuficiente, el servicio responde `403 Forbidden`.
+5. Si el clearance es válido, el repositorio devuelve los activos clasificados.
+
+Este diseño asegura que la restricción de seguridad se aplique en la capa de aplicación y no solo en el controlador.
+
+### 3. Tecnologías
+
+El dominio de investments se implementa con las siguientes tecnologías:
+
+| Capa | Tecnología | Uso |
+| ---- | ---------- | --- |
+| Backend | Python 3.12 + FastAPI | Exposición de endpoints y lógica HTTP |
+| Dominio | DDD táctico | Entidades, value objects y servicios de dominio |
+| Persistencia | PostgreSQL + SQLAlchemy | Almacenamiento de activos |
+| Seguridad | JWT + PyJWT | Validación del clearance del sujeto |
+| Contenerización | Docker | Empaquetado del servicio |
+| Orquestación local | Docker Compose | Ejecución de servicios y base de datos |
+| Orquestación en clúster | Kubernetes / Minikube | Despliegue declarativo del contexto de investments |
+
+### 4. Regla aplicada en el dominio
+
+En este contexto se aplica Bell-LaPadula con la restricción:
+
+> **No Read Up**: un sujeto no puede leer información cuya clasificación sea superior a su clearance.
+
+Esto se traduce en la práctica en que los activos de inversión se clasifican como `Oro`, y solo un sujeto con clearance `Oro` puede acceder a ellos.
+
+---
+
 ## Estructura del Proyecto
 
 ```text
