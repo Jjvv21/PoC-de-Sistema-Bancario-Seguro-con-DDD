@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-service
+spec:
+  selector:
+    app: banking-service
+  ports:
+  - port: 8002
+    targetPort: 8002
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-db
+spec:
+  selector:
+    app: banking-db
+  ports:
+  - port: 5432
+    targetPort: 5432

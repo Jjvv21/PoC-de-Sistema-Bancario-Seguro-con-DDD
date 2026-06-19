@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-config
+data:
+  DATABASE_URL: "postgresql://banking_user:banking_pass@banking-db:5432/banking_db"
+  JWT_SECRET_KEY: "dev-secret-change-in-production"

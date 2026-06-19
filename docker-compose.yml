@@ -45,6 +45,26 @@ services:
     depends_on:
       - banking-db
 
+  investments-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: investments_db
+      POSTGRES_USER: investments_user
+      POSTGRES_PASSWORD: investments_pass
+    volumes:
+      - investments_db_data:/var/lib/postgresql/data
+
+  investments-service:
+    build: ./investments-service
+    ports:
+      - "8013:8003"
+    environment:
+      DATABASE_URL: postgresql://investments_user:investments_pass@investments-db:5432/investments_db
+      JWT_SECRET_KEY: dev-secret-change-in-production
+    depends_on:
+      - investments-db
+
 volumes:
   iam_data:
   banking_data:
+  investments_db_data:
