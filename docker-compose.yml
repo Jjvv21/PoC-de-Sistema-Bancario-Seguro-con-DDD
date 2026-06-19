@@ -10,7 +10,11 @@ services:
       - "5443:5432"
     volumes:
       - iam_data:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iam_user -d iam_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
   iam-service:
     build: ./iam-service
     container_name: iam-service
@@ -20,8 +24,8 @@ services:
     ports:
       - "8011:8001"
     depends_on:
-      - iam-db
-
+      iam-db:
+        condition: service_healthy
   banking-db:
     image: postgres:16
     container_name: banking-db
@@ -33,7 +37,11 @@ services:
       - "5444:5432"
     volumes:
       - banking_data:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_user -d banking_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
   banking-service:
     build: ./banking-service
     container_name: banking-service
@@ -43,27 +51,33 @@ services:
     ports:
       - "8012:8002"
     depends_on:
-      - banking-db
-
+      banking-db:
+        condition: service_healthy
   investments-db:
     image: postgres:15
+    container_name: investments-db
     environment:
       POSTGRES_DB: investments_db
       POSTGRES_USER: investments_user
       POSTGRES_PASSWORD: investments_pass
     volumes:
       - investments_db_data:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U investments_user -d investments_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
   investments-service:
     build: ./investments-service
+    container_name: investments-service
     ports:
       - "8013:8003"
     environment:
       DATABASE_URL: postgresql://investments_user:investments_pass@investments-db:5432/investments_db
       JWT_SECRET_KEY: dev-secret-change-in-production
     depends_on:
-      - investments-db
-
+      investments-db:
+        condition: service_healthy
 volumes:
   iam_data:
   banking_data:
